@@ -101,6 +101,34 @@ class Bird(pg.sprite.Sprite):
             self.image = self.imgs[self.dire]
         screen.blit(self.image, self.rect)
 
+class Shield(pg.sprite.Sprite):
+    """
+    盾に関するクラス
+    """
+    def __init__(self, bird: Bird, life: int):
+        """
+        盾画像Surfaceを生成する
+        引数 bird：盾を展開するこうかとん
+        """
+        super().__init__()
+        self.image = pg.Surface((20, bird.rect.height * 2))
+        self.image.fill((0, 0, 255))
+
+        self.rect = self.image.get_rect()
+        self.bird = bird
+        self.rect.center = bird.rect.center
+        self.life = life  # 盾の耐久時間
+
+    def update(self):
+        """
+        盾をこうかとんの位置に追従させる
+        引数 bird：盾を展開するこうかとん
+        """
+        self.rect.center = self.bird.rect.center
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
+
 
 class Bomb(pg.sprite.Sprite):
     """
@@ -253,6 +281,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    shields = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -263,6 +292,11 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_s:
+                shield = Shield(bird, 400)
+                if not shields.sprites():
+                    shields.add(shield)                
+
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -296,6 +330,8 @@ def main():
         emys.draw(screen)
         bombs.update()
         bombs.draw(screen)
+        shields.update()
+        shields.draw(screen)
         exps.update()
         exps.draw(screen)
         score.update(screen)
